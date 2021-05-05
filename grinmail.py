@@ -9,7 +9,7 @@ def email_provider(user):
     return mail_id
 
 def receive(slatepack):
-    cli = pexpect.spawn('grin.wallet receive')
+    cli = pexpect.spawn('grin-wallet receive')
     cli.expect('Password:')
     grin_password = config.get('login','grin_password')
     cli.sendline(grin_password)
