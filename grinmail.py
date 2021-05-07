@@ -16,14 +16,17 @@ def email_provider(user):
     return mail_id
 
 def terminal(slatepack):
-    child = pexpect.spawn('grin-wallet receive')
-    child.expect('Password:')
-    wallet_password = config.get('login','wallet_password')
-    child.sendline(wallet_password)
-    child.expect('message:')
-    child.sendline(slatepack)
-    child.expect(pexpect.EOF)
-    result = child.before.decode('utf-8')
+    try:
+        child = pexpect.spawn('grin-wallet receive')
+        child.expect('Password:')
+        wallet_password = config.get('login','wallet_password')
+        child.sendline(wallet_password)
+        child.expect('message:')
+        child.sendline(slatepack)
+        child.expect(pexpect.EOF)
+        result = child.before.decode('utf-8')
+    except:
+        result = 'Slatepack data is wrong, please verify and resend.'
     logger.debug('终端返回结果：%s',result)
 
     return result
@@ -51,7 +54,11 @@ def handle_result(result):
         logger.info('此交易重复')
         content = '你之前提交的Grin交易已收到，请不要重复发送同一笔交易。'
         return (content,None)
-    
+    else:
+        logger.info('Slatepack 数据错误')
+        content = '对不起，你所发送的 Slatepack 数据有误，请检查验证或重新生成后再次发送。'
+        return (content,None)
+
 def polling_mail(new_mail): 
     if new_mail['attachments']:
         if 'slatepack' in new_mail['attachments'][0][0]:
@@ -98,7 +105,7 @@ def main():
         logging.info('终端开始处理Slatepack1数据...')
         result = terminal(slatepack)
         content,slate_file = handle_result(result)
-        send_mail(sender, content,slate_file)
+        send_mail(sender,content,slate_file)
     mail_id += 1
 
 
