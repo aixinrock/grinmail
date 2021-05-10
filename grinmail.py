@@ -8,7 +8,7 @@ import zmail
 
 
 def email_provider(user):
-    if user.endswith('qq.com'):
+    if user.endswith('qq.com') or user.endswith('163.com'):
         mail_id = server.get_latest()['id']
     else:
         mail_id = float('-inf')
@@ -127,4 +127,4 @@ if __name__ == '__main__':
 
     while True:
         main()
-        time.sleep(10)
+        time.sleep(60)
