@@ -7,14 +7,6 @@ import pexpect
 import zmail
 
 
-def email_provider(user):
-    if user.endswith('qq.com') or user.endswith('163.com'):
-        mail_id = server.get_latest()['id']
-    else:
-        mail_id = float('-inf')
-
-    return mail_id
-
 def terminal(slatepack):
     try:
         child = pexpect.spawn('grin-wallet receive')
@@ -88,7 +80,7 @@ def send_mail(sender,content,slate_file):
     logger.info('已回复GrinMail交易邮件，bingo！')
 
 def main():
-    mail_id = email_provider(user)
+    mail_id = server.get_latest()['id']
     while True:
         time.sleep(60)
         mails = server.get_mails(start_index=mail_id + 1)
