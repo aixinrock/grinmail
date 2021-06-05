@@ -11,15 +11,16 @@ The sender sends an email to the recipient's mailbox with slatepack data(in the 
 Win will be supported in the next step, and Mac will wait for Grin to da moon.
 2. Install grin-wallet and grin node:  
 [Click to enter the official website to download](https://grin.mw/download), you can refer to the official website tutorial to install, initialize, create a new or import an existing wallet.
-3. Enable Gmail POP3 and SMTP services:  
-**Settings ——> Forwarding and POP/IMAP ——> POP download ——> Enable POP for mail that arrives from now on ——> Save Changes**  
+3. Enable QQMail POP3 and SMTP services:  
+**Mailbox Settings ——> Accounts ——> POP3/IMAP/SMTP/Exchange/CardDAV/CalDAV Service ——> Options:
+POP3/SMTP Service ——> Save Changes**  
 4. Clone:  
-`git clone git@github.com:aixinrock/grinmail.git`
+`git clone https://github.com/aixinrock/grinmail.git`
 ## Operating
 1. Configuration file  
 Open config.ini, enter the emaill account, email password and Grin wallet password
 2. Python Library  
-`pip install -r requirements.txt`
+`pip3 install -r requirements.txt`
 3. Run  
 `python3 grinmail.py`
 ## Useage
@@ -27,6 +28,4 @@ Open config.ini, enter the emaill account, email password and Grin wallet passwo
 * To deposit on the exchange, need to bind it to the emaill of the user
 * For lazy people who don't want to move their fingers
 ## Feedback
->Test email: kirwlauinshipd@gmail.com to accept small donations.  
-Join the Telegram group to report bugs: t.me/grinmail  
-Contact the developer: aixinrock@gmail.com
+>Join the Telegram group to report bugs: http://t.me/grinmail
