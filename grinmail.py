@@ -97,7 +97,7 @@ def gmail():
 def main():
     mail_id = server.get_latest()['id']
     while True:
-        time.sleep(150)
+        time.sleep(20)
         mails = server.get_mails(start_index=mail_id + 1)
         if mails:
             logger.info('共收到 %s 封新邮件',len(mails))
@@ -132,6 +132,6 @@ if __name__ == '__main__':
     if user.endswith('@gmail.com'):
         while True:
             gmail()
-            time.sleep(150)
+            time.sleep(20)
     else:
         main()

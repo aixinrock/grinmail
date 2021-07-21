@@ -32,31 +32,24 @@ def send_mail(receiver,slate_file):
     server.send_mail(receiver,mail)
     logger.info('已发送GrinMail交易邮件，等待回复')
 
-def receive_mail(mail_id):
-    new_mails = server.get_mails(start_index=mail_id + 1)
-    if new_mails:
-        for new_mail in new_mails:
-            logger.info('收到回复邮件 %s',new_mail['subject'])
-            if new_mail['attachments']:
-                if 'S2.slatepack' in new_mail['attachments'][0][0]:
-                    slatepack2 = new_mail['attachments'][0][1].decode()
-                    logger.debug('接收方回传的Slatepack2数据：%s',slatepack2)
-                    return slatepack2
-            else:
-                pass
+def receive_mail(new_mail):
+    logger.info('收到回复邮件 %s',new_mail['subject'])
+    if new_mail['attachments']:
+        if 'S2.slatepack' in new_mail['attachments'][0][0]:
+            slatepack2 = new_mail['attachments'][0][1].decode()
+            logger.debug('接收方回传的Slatepack2数据：%s',slatepack2)
+            return slatepack2
 
-            try:
-                mail_content = new_mail['content_text'][0]
-            except:
-                return
-            if 'Slatepack2' in mail_content:
-                pattern = re.compile(r'BEGINSLATEPACK.[\s\S]*?ENDSLATEPACK.')
-                slatepack = re.search(pattern,mail_content).group()
-                slatepack2 = ' '.join(slatepack.split())
-                logger.debug('正文中匹配到的Slatepack2数据：%s',slatepack)
-                return slatepack2
-    
-    return
+    try:
+        mail_content = new_mail['content_text'][0]
+    except:
+        return
+    if 'Slatepack2' in mail_content:
+        pattern = re.compile(r'BEGINSLATEPACK.[\s\S]*?ENDSLATEPACK.')
+        slatepack = re.search(pattern,mail_content).group()
+        slatepack2 = ' '.join(slatepack.split())
+        logger.debug('正文中匹配到的Slatepack2数据：%s',slatepack)
+        return slatepack2
 
 def finalize(slatepack2):
     child = pexpect.spawn('grin-wallet finalize')
@@ -77,11 +70,24 @@ def main():
     slate_file = send(amount)
     logger.info('发送Slatepack1数据到邮箱 %s',receiver)
     send_mail(receiver, slate_file)
-    mail_id = server.get_latest()['id']
+    if not user.endswith('@gmail.com'):
+        mail_id = server.get_latest()['id']
     slatepack2 = None
     while not slatepack2:
         time.sleep(60)
-        slatepack2 = receive_mail(mail_id)
+        if user.endswith('@gmail.com'):
+            try:
+                new_mail = server.get_latest()
+            except:
+                continue
+            slatepack2 = receive_mail(new_mail)
+        else:
+            new_mails = server.get_mails(start_index=mail_id + 1)
+            if new_mails:
+                for new_mail in new_mails:
+                    slatepack2 = receive_mail(new_mail)
+            else:
+                continue
     logger.info('完结交易中...')
     finalize(slatepack2)
 
