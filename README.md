@@ -4,7 +4,7 @@
 [English Introduction click here](README-en.md)
 
 ## 更新
-2021.7.10 增加一键发币功能 [用法介绍](send.md)
+2021.7.10 增加一键发币功能 [用法中文介绍](send.md) [English introduction](send-en.md)
 
 2021.6.6 支持Windowns系统，直接运行如下代码:
 
