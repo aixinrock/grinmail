@@ -79,11 +79,7 @@ def send_mail(sender,content,slate_file):
     server.send_mail(sender,mail)
     logger.info('已回复GrinMail交易邮件，bingo！')
 
-def gmail():
-    try:
-        new_mail = server.get_latest()
-    except:
-        return
+def receive_mail(new_mail):
     logger.info('收到一封新邮件 %s',new_mail['subject'])
     slatepack = polling_mail(new_mail)
     if slatepack:
@@ -95,23 +91,23 @@ def gmail():
         send_mail(sender,content,slate_file)
 
 def main():
-    mail_id = server.get_latest()['id']
+    if not user.endswith('@gmail.com'):
+        mail_id = server.get_latest()['id']
     while True:
         time.sleep(20)
-        mails = server.get_mails(start_index=mail_id + 1)
-        if mails:
-            logger.info('共收到 %s 封新邮件',len(mails))
-            for new_mail in mails:
-                logger.info('收到邮件 %s',new_mail['subject'])
-                slatepack = polling_mail(new_mail)
-                if slatepack:
-                    pattern = re.compile(r'<(.*?)>')
-                    sender = re.search(pattern,new_mail['from']).group(1)
-                    logging.info('终端开始处理Slatepack1数据...')
-                    result = terminal(slatepack)
-                    content,slate_file = handle_result(result)
-                    send_mail(sender,content,slate_file)
-            mail_id += len(mails)
+        if user.endswith('@gmail.com'):
+            try:
+                new_mail = server.get_latest()
+            except:
+                continue
+            receive_mail(new_mail)
+        else:
+            mails = server.get_mails(start_index=mail_id + 1)
+            if mails:
+                logger.info('共收到 %s 封新邮件',len(mails))
+                for new_mail in mails:
+                    receive_mail(new_mail)
+                mail_id += len(mails)
 
 
 if __name__ == '__main__':
@@ -129,9 +125,4 @@ if __name__ == '__main__':
     logger = logging.getLogger(__name__)
     logger.info('GrinMail上线，开始运行...')
 
-    if user.endswith('@gmail.com'):
-        while True:
-            gmail()
-            time.sleep(20)
-    else:
-        main()
+    main()
