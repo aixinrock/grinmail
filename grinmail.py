@@ -6,6 +6,7 @@ import configparser
 import pexpect
 import zmail
 
+from wallet import GrinWallet
 
 def terminal(slatepack):
     try:
@@ -52,6 +53,30 @@ def handle_result(result):
         return (content,None)
 
 def polling_mail(new_mail): 
+    if '古灵邮查询余额' in new_mail['subject'] or 'grinmail check balances' in new_mail['subject']:
+        wallet_password = config.get('login','wallet_password')
+        wallet = GrinWallet(wallet_password)
+        total,confirmation,finalization,locked,spendable = wallet.info()
+        content = f'''                 ____古灵币余额信息____
+
+               总 资 产 ：  {total}
+               可 花 费 ：  {spendable}
+               上 链 中 ：  {confirmation}
+               待 完 结 ：  {finalization}
+               被 锁 定 ：  {locked}
+
+                ____Grin Balances Info____
+
+          Confirmed Total            : {total}
+          Currently Spendable     : {spendable}
+          Awaiting Confirmation : {confirmation}
+          Awaiting Finalization    : {finalization}
+          Locked by transaction  : {locked}
+                
+          '''
+        send_mail(user,content,None)
+        return
+          
     if new_mail['attachments']:
         if 'slatepack' in new_mail['attachments'][0][0]:
             slatepack = new_mail['attachments'][0][1].decode()
