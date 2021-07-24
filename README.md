@@ -4,6 +4,8 @@
 [English Introduction click here](README-en.md)
 
 ## 更新
+2021.7.24 增加邮件查询古灵余额的功能，只需要往自己邮箱发送一封主题为“古灵邮查询余额”或“grinmail check balances”的邮件，将收到一封自动回复的余额查询结果邮件，显示你当前的Grin资产。
+
 2021.7.10 增加一键发币功能 [用法中文介绍](send.md) [English introduction](send-en.md)
 
 2021.6.6 支持Windowns系统，直接运行如下代码:
