@@ -1,4 +1,5 @@
-import pexpect,re,time
+import re
+import pexpect
 
 
 class GrinWallet():
@@ -89,8 +90,8 @@ class GrinWallet():
           pattern = re.compile(r'/home.*?S2.slatepack')
           slate_file = re.search(pattern,result).group()
           with open(slate_file,'r') as f:
-               slate = f.read()
-          return slate
+               slate2 = f.read()
+          return (slate2,slate_file)
 
      def scan(self):
           child = pexpect.spawn('grin-wallet scan')
@@ -103,7 +104,7 @@ class GrinWallet():
           slate_file = re.search(pattern, result).group()
           with open(slate_file,'r') as f:
                slatepack = f.read()
-          return slatepack
+          return (slatepack,slate_file)
 
      def finalize(self,slatepack):
           result = self.terminal_s('finalize',slatepack)
