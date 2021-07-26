@@ -4,29 +4,14 @@ import time
 import sys
 import configparser
 
-import pexpect
 import zmail
 
+from wallet import GrinWallet
 
-def send(amount):
-    child = pexpect.spawn('grin-wallet send ' + str(amount))
-    child.expect('Password:')
-    child.sendline(wallet_password)
-    child.expect(pexpect.EOF)
-    result = child.before.decode('utf-8')
 
-    pattern = re.compile(r'/home.*?S1.slatepack')
-    slate_file = re.search(pattern, result).group()
-    logger.debug('Slatepack1已生成并存储在目录：%s',slate_file)
-
-    return slate_file
-
-def send_mail(receiver,slate_file):
-    with open(slate_file,'r') as f:
-        slatepack1 = f.read()
-    
-    mail = {'subject':'GrinMail 交易邮件（Grin trading mail）',
-            'content_text':slatepack1,
+def send_mail(receiver,subject,content,slate_file):
+    mail = {'subject':subject,
+            'content_text':content,
             'attachments':slate_file,
     }
     server.send_mail(receiver,mail)
@@ -44,52 +29,55 @@ def receive_mail(new_mail):
         mail_content = new_mail['content_text'][0]
     except:
         return
-    if 'Slatepack2' in mail_content:
-        pattern = re.compile(r'BEGINSLATEPACK.[\s\S]*?ENDSLATEPACK.')
-        slatepack = re.search(pattern,mail_content).group()
-        slatepack2 = ' '.join(slatepack.split())
-        logger.debug('正文中匹配到的Slatepack2数据：%s',slatepack)
-        return slatepack2
+    pattern = re.compile(r'BEGINSLATEPACK.[\s\S]*?ENDSLATEPACK.')
+    slatepack = re.search(pattern,mail_content).group()
+    slatepack2 = ' '.join(slatepack.split())
+    logger.debug('正文中匹配到的Slatepack2数据：%s',slatepack)
+    return slatepack2
 
-def finalize(slatepack2):
-    child = pexpect.spawn('grin-wallet finalize')
-    child.expect('Password:')
-    child.sendline(wallet_password)
-    child.expect('message:')
-    child.sendline(slatepack2)
-    child.expect(pexpect.EOF)
-    result = child.before.decode('utf-8')
-
-    if 'Transaction finalized successfully' in result:
-        logger.info('已完结交易，成功提交上链')
-    else:
-        print(result)
 
 def main():
     logger.info('开始生成Slatepack1数据...')
-    slate_file = send(amount)
+    wallet = GrinWallet(wallet_password)
+    slatepack,slate_file = wallet.send(amount)
     logger.info('发送Slatepack1数据到邮箱 %s',receiver)
-    send_mail(receiver, slate_file)
+    subject = '[GrinMail] 收到Grin交易（Receive Grin slatepack1）'
+    content = f'恭喜你！收到一笔Grin交易金额为 {amount} GRIN \n'\
+              f'Congratulations! Received a transaction in the amount of {amount} GRIN.\n'\
+              '你收到的slatepack1信息如下：\n'\
+              'The slatepack1 message you received is as follows: \n'\
+              '————————————————————————'\
+              f'\n{slatepack}\n'\
+              '————————————————————————\n'\
+              '请将以上信息复制粘贴到钱包，或将附件提交到钱包，以获得回应slatepack信息,然后回复给发送者来完成交易。如果你使用GrinMail工具，则无需任何操作，自动回复。\n'\
+              'Please copy and paste the slatepack message into the wallet, or submit the attachment to the wallet, get the response slatepack and reply to the sender to complete the transcation. if you use the GrinMail, you will reply automatically without any action.'
+    send_mail(receiver,subject,content,slate_file)
     if not user.endswith('@gmail.com'):
         mail_id = server.get_latest()['id']
     slatepack2 = None
     while not slatepack2:
-        time.sleep(60)
+        time.sleep(20)
         if user.endswith('@gmail.com'):
             try:
                 new_mail = server.get_latest()
             except:
                 continue
-            slatepack2 = receive_mail(new_mail)
+            if 'slatepack2' in new_mail['subject']:
+                slatepack2 = receive_mail(new_mail)
         else:
             new_mails = server.get_mails(start_index=mail_id + 1)
             if new_mails:
                 for new_mail in new_mails:
-                    slatepack2 = receive_mail(new_mail)
+                    if 'slatepack2' in new_mail['subject']:
+                        slatepack2 = receive_mail(new_mail)
             else:
                 continue
     logger.info('完结交易中...')
-    finalize(slatepack2)
+    result = wallet.finalize(slatepack2)
+    if 'Transaction finalized successfully' in result:
+        logger.info('已完结交易，成功提交上链')
+    else:
+        print(result)
 
 
 if __name__ == '__main__':
