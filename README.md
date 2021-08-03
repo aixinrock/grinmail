@@ -4,6 +4,8 @@
 [English Introduction click here](README-en.md)
 
 ## 更新
+2021.8.3 增加断线重连功能，因网络波动原因导致发送邮件失败1分钟后重新尝试发送，接收邮件失败5分钟后重新尝试继续接收。
+
 2021.7.24 增加邮件查询古灵余额的功能，只需要往自己邮箱发送一封主题为“古灵邮查询余额”或“grinmail check balances”的邮件，将收到一封自动回复的余额查询结果邮件，显示你当前的Grin资产。
 
 2021.7.10 增加一键发币功能 [用法中文介绍](send.md) [English introduction](send-en.md)
