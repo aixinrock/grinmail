@@ -32,6 +32,7 @@ def main():
           '''
         subject = '[GrinMail] 古灵币余额信息（Grin Balances Info）'
         send_mail(user,subject,content,None)
+        logging.info('已回复查询余额邮件')
         return
     slatepack = get_slatepack()
     if slatepack:
@@ -60,8 +61,12 @@ def send_mail(sender,subject,content,slate_file):
             'content_text':content,
             'attachments':slate_file,
     }
-    server.send_mail(sender,mail)
-    logger.info('已回复GrinMail邮件，bingo！')
+    try:
+        server.send_mail(sender,mail)
+    except Exception as e:
+        logger.info(f'{e}，导致邮件未发送成功，60秒后重新发送。')
+        time.sleep(60)
+        send_mail(sender,subject,content,slate_file)
 
 
 def get_slatepack():
@@ -100,6 +105,7 @@ def wallet_receive(slatepack):
     pattern = re.compile(r'<(.*?)>')
     sender = re.search(pattern,new_mail['from']).group(1)
     send_mail(sender,subject,content,slate_file)
+    logger.info('回复Grin交易邮件成功，Bingo！')
     return '成功发送'
 
 
@@ -115,7 +121,7 @@ if __name__ == '__main__':
     server = zmail.server(user,password)
     
     logging.basicConfig(level=logging.DEBUG,
-    #filename='log',
+    filename='log',
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     )
     logger = logging.getLogger(__name__)
@@ -123,6 +129,7 @@ if __name__ == '__main__':
 
     if not user.endswith('@gmail.com'):
         mail_id = server.get_latest()['id']
+        logging.info('邮件ID获取成功，开始收取邮件')
     while True:
         time.sleep(20)
         if user.endswith('@gmail.com'):
@@ -132,7 +139,13 @@ if __name__ == '__main__':
                 continue
             main()
         else:
-            mails = server.get_mails(start_index=mail_id + 1)
+            try:
+                mails = server.get_mails(start_index=mail_id + 1)
+            except Exception as e:
+                logging.info(f'{e}，导致获取邮件失败，5分钟后重试')
+                time.sleep(300)
+                continue
+            
             if mails:
                 logger.info('共收到 %s 封新邮件',len(mails))
                 for new_mail in mails:
