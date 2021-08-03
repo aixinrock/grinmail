@@ -50,8 +50,8 @@ def send_mail(sender,subject,content,slate_file):
     }
     try:
         server.send_mail(sender,mail)
-    except:
-        logger.info('由于网络原因，邮件未发送成功，60秒后重新发送。')
+    except Exception as e:
+        logger.info(f'{e}，导致邮件未发送成功，60秒后重新发送。')
         time.sleep(60)
         send_mail(sender,subject,content,slate_file)
 
@@ -111,9 +111,9 @@ if __name__ == '__main__':
         else:
             try:
                 mails = server.get_mails(start_index=mail_id + 1)
-            except:
-                logging.info('网络原因断开，60秒后重试')
-                time.sleep(60)
+            except Exception as e:
+                logging.info(f'{e}，导致获取邮件失败，5分钟后重试')
+                time.sleep(300)
                 continue
             if mails:
                 logger.info('共收到 %s 封新邮件',len(mails))
